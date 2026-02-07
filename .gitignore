@@ -1,2 +1,5 @@
 *.pyc
 5e-spells/spells.json
+5e-spells/spelldescs.txt
+characters/all_characters.json
+campaigns/**/campaign_*.json
