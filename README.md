@@ -52,15 +52,15 @@ Query character data without loading full JSON files.
 python3 scripts/character_sheet.py [--dir DIR] <command> <character_name>
 ```
 
-| Command | Description |
-|---------|-------------|
-| `sheet` | Full character sheet with all stats |
-| `overview` | Brief stats overview (HP, AC, abilities) |
-| `spells` | List all spells by level |
-| `features` | Class/race features and feats |
-| `inventory` | Equipment and currency |
-| `summary` | One-line summary |
-| `list` | List all available characters |
+| Command     | Description                              |
+| ----------- | ---------------------------------------- |
+| `sheet`     | Full character sheet with all stats      |
+| `overview`  | Brief stats overview (HP, AC, abilities) |
+| `spells`    | List all spells by level                 |
+| `features`  | Class/race features and feats            |
+| `inventory` | Equipment and currency                   |
+| `summary`   | One-line summary                         |
+| `list`      | List all available characters            |
 
 ```bash
 # Examples

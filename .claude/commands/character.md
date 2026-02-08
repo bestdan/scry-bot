@@ -1,6 +1,8 @@
 # Character Sheet Reader
 
-Read D&D character data from JSON files in `campaigns/`.
+Read D&D character data from JSON files organized under `campaigns/`.
+
+Characters are stored per-campaign in subdirectories (e.g. `campaigns/<campaign>/characters/`). The script searches all campaign subdirectories recursively.
 
 ## IMPORTANT: Always Use Python Scripts
 
@@ -12,19 +14,19 @@ Read D&D character data from JSON files in `campaigns/`.
 python3 scripts/character_sheet.py <command> <character_name>
 ```
 
-The script searches all campaign subdirectories automatically.
+Use `--dir <path>` to override the default `campaigns/` base directory. Use the `list` command to discover available characters and campaigns.
 
 ## Commands
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `sheet` | Full character sheet | `python3 scripts/character_sheet.py sheet torgana` |
-| `overview` | Brief stats overview | `python3 scripts/character_sheet.py overview torgana` |
-| `spells` | List all spells | `python3 scripts/character_sheet.py spells torgana` |
-| `features` | Class/race features | `python3 scripts/character_sheet.py features torgana` |
+| Command     | Description          | Example                                                |
+| ----------- | -------------------- | ------------------------------------------------------ |
+| `sheet`     | Full character sheet | `python3 scripts/character_sheet.py sheet torgana`     |
+| `overview`  | Brief stats overview | `python3 scripts/character_sheet.py overview torgana`  |
+| `spells`    | List all spells      | `python3 scripts/character_sheet.py spells torgana`    |
+| `features`  | Class/race features  | `python3 scripts/character_sheet.py features torgana`  |
 | `inventory` | Equipment & currency | `python3 scripts/character_sheet.py inventory torgana` |
-| `summary` | One-line summary | `python3 scripts/character_sheet.py summary torgana` |
-| `list` | List all characters | `python3 scripts/character_sheet.py list` |
+| `summary`   | One-line summary     | `python3 scripts/character_sheet.py summary torgana`   |
+| `list`      | List all characters  | `python3 scripts/character_sheet.py list`              |
 
 ## Usage Examples
 
