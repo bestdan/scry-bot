@@ -1,6 +1,6 @@
 # Character Sheet Reader
 
-Read D&D character data from JSON files in `characters/`.
+Read D&D character data from JSON files in `campaigns/`.
 
 ## IMPORTANT: Always Use Python Scripts
 
@@ -11,6 +11,8 @@ Read D&D character data from JSON files in `characters/`.
 ```bash
 python3 scripts/character_sheet.py <command> <character_name>
 ```
+
+The script searches all campaign subdirectories automatically.
 
 ## Commands
 

@@ -170,11 +170,14 @@ class DndBeyondScraper:
         return characters
 
     def scrape_campaign_characters(
-        self, campaign_id: int, output_dir: str = "./characters"
+        self, campaign_id: int, campaign_name: str = None, base_dir: str = "./campaigns"
     ) -> None:
         """Scrape all characters from a specific campaign."""
-        output_path = Path(output_dir)
-        output_path.mkdir(exist_ok=True)
+        # Create campaign directory
+        if not campaign_name:
+            campaign_name = f"campaign_{campaign_id}"
+        campaign_dir = Path(base_dir) / campaign_name
+        campaign_dir.mkdir(parents=True, exist_ok=True)
 
         print(f"Fetching characters from campaign {campaign_id}...")
         characters = self.get_campaign_characters(campaign_id)
@@ -206,53 +209,36 @@ class DndBeyondScraper:
                 print(f"  ✗ Error scraping character {char_id}: {e}")
 
         # Save combined file
-        combined_path = output_path / f"campaign_{campaign_id}_characters.json"
+        combined_path = campaign_dir / f"campaign_{campaign_id}_characters.json"
         with open(combined_path, "w", encoding="utf-8") as f:
             json.dump(all_data, f, indent=2, ensure_ascii=False)
         print(f"\n✓ Saved combined data to {combined_path}")
         print(f"\nTotal characters scraped: {len(all_data)}/{len(characters)}")
 
-    def scrape_all_characters(self, output_dir: str = "./characters") -> None:
-        """Scrape all characters and save to JSON files."""
-        output_path = Path(output_dir)
-        output_path.mkdir(exist_ok=True)
+    def scrape_all_campaigns(self, base_dir: str = "./campaigns") -> None:
+        """Scrape all characters from all campaigns, organized by campaign."""
+        base_path = Path(base_dir)
+        base_path.mkdir(exist_ok=True)
 
-        print("Fetching character list...")
-        characters = self.get_character_list()
-        print(f"Found {len(characters)} characters")
+        print("Fetching campaigns...")
+        campaigns = self.get_campaign_list()
+        print(f"Found {len(campaigns)} campaigns\n")
 
-        all_data = []
-
-        for char_info in characters:
-            char_id = char_info["id"]
-            player_name = char_info.get("player", "")
-            print(f"\nScraping character ID {char_id}...")
-
+        for campaign in campaigns:
+            campaign_id = campaign["id"]
+            campaign_name = campaign["name"].replace("/", "_").replace(" ", "_").lower()
+            print(f"\n{'='*60}")
+            print(f"Campaign: {campaign['name']} (ID: {campaign_id})")
+            print(f"{'='*60}")
+            
             try:
-                char_data = self.get_character_data(char_id)
-                char_name = char_data.get("name", f"Character_{char_id}")
-                if player_name:
-                    char_data["_player"] = player_name
-                all_data.append(char_data)
-
-                # Save individual character file
-                filename = (
-                    f"{char_name.replace(' ', '_').replace('/', '_')}_{char_id}.json"
-                )
-                filepath = output_path / filename
-                with open(filepath, "w", encoding="utf-8") as f:
-                    json.dump(char_data, f, indent=2, ensure_ascii=False)
-                print(f"  ✓ {char_name} saved to {filepath}")
-
+                self.scrape_campaign_characters(campaign_id, campaign_name, base_dir)
             except Exception as e:
-                print(f"  ✗ Error scraping character {char_id}: {e}")
+                print(f"  ✗ Error scraping campaign {campaign['name']}: {e}")
 
-        # Save combined file
-        combined_path = output_path / "all_characters.json"
-        with open(combined_path, "w", encoding="utf-8") as f:
-            json.dump(all_data, f, indent=2, ensure_ascii=False)
-        print(f"\n✓ Saved combined data to {combined_path}")
-        print(f"\nTotal characters scraped: {len(all_data)}/{len(characters)}")
+        print(f"\n{'='*60}")
+        print("All campaigns scraped!")
+        print(f"{'='*60}")
 
 
 def main():
@@ -295,23 +281,23 @@ def main():
         elif command == "campaign" and len(sys.argv) > 2:
             # Scrape specific campaign
             campaign_id = int(sys.argv[2])
-            output_dir = sys.argv[3] if len(sys.argv) > 3 else "./characters"
-            scraper.scrape_campaign_characters(campaign_id, output_dir)
+            campaign_name = sys.argv[3] if len(sys.argv) > 3 else None
+            scraper.scrape_campaign_characters(campaign_id, campaign_name)
 
         else:
             print("Usage:")
             print(
-                "  python3 dndbeyond_scraper.py              - Scrape all your characters"
+                "  python3 character_scraper.py                    - Scrape all campaigns"
             )
             print(
-                "  python3 dndbeyond_scraper.py campaigns    - List all your campaigns"
+                "  python3 character_scraper.py campaigns          - List all your campaigns"
             )
             print(
-                "  python3 dndbeyond_scraper.py campaign ID  - Scrape all characters in campaign"
+                "  python3 character_scraper.py campaign ID [NAME] - Scrape specific campaign"
             )
     else:
-        # Default: scrape all your characters
-        scraper.scrape_all_characters()
+        # Default: scrape all campaigns
+        scraper.scrape_all_campaigns()
 
 
 if __name__ == "__main__":
