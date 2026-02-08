@@ -72,7 +72,9 @@ class DndBeyondScraper:
                         seen_ids.add(char["id"])
                         characters.append(char)
             except Exception as e:
-                print(f"  Warning: Could not get characters from campaign {campaign['name']}: {e}")
+                print(
+                    f"  Warning: Could not get characters from campaign {campaign['name']}: {e}"
+                )
 
         return characters
 
@@ -96,7 +98,9 @@ class DndBeyondScraper:
 
         data = response.json()
         if not data.get("success"):
-            raise ValueError(f"API error for character {character_id}: {data.get('message')}")
+            raise ValueError(
+                f"API error for character {character_id}: {data.get('message')}"
+            )
 
         char_data = data.get("data", {})
         return self._enrich_stat_names(char_data)
@@ -133,7 +137,7 @@ class DndBeyondScraper:
         characters = []
 
         # Find all character IDs from any /characters/{id} pattern
-        char_ids = list(set(re.findall(r'/characters/(\d+)', html)))
+        char_ids = list(set(re.findall(r"/characters/(\d+)", html)))
 
         for char_id in char_ids:
             # Try to find character info in the HTML
@@ -146,26 +150,28 @@ class DndBeyondScraper:
             if idx > 0:
                 # Get context around the ID (look back further to find the card start)
                 start = max(0, idx - 1000)
-                context = html[start:idx + 500]
+                context = html[start : idx + 500]
 
                 # Look for character name in character-info-primary
                 name_match = re.search(
-                    r'character-info-primary[^>]*>\s*([^<]+?)\s*<', context
+                    r"character-info-primary[^>]*>\s*([^<]+?)\s*<", context
                 )
                 if name_match:
                     name = name_match.group(1).strip()
 
                 # Look for player name
-                player_match = re.search(r'Player:\s*([^<]+)', context)
+                player_match = re.search(r"Player:\s*([^<]+)", context)
                 if player_match:
                     player = player_match.group(1).strip()
 
-            characters.append({
-                "id": int(char_id),
-                "name": name,
-                "player": player,
-                "url": f"{self.base_url}/characters/{char_id}",
-            })
+            characters.append(
+                {
+                    "id": int(char_id),
+                    "name": name,
+                    "player": player,
+                    "url": f"{self.base_url}/characters/{char_id}",
+                }
+            )
 
         return characters
 
@@ -227,18 +233,18 @@ class DndBeyondScraper:
         for campaign in campaigns:
             campaign_id = campaign["id"]
             campaign_name = campaign["name"].replace("/", "_").replace(" ", "_").lower()
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"Campaign: {campaign['name']} (ID: {campaign_id})")
-            print(f"{'='*60}")
-            
+            print(f"{'=' * 60}")
+
             try:
                 self.scrape_campaign_characters(campaign_id, campaign_name, base_dir)
             except Exception as e:
                 print(f"  ✗ Error scraping campaign {campaign['name']}: {e}")
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("All campaigns scraped!")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
 
 def main():
