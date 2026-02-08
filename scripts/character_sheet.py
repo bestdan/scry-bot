@@ -298,12 +298,13 @@ class CharacterSheet:
         print("\n" + "═" * 55)
 
 
-def find_character(name_query: str, characters_dir: str = "characters") -> str | None:
-    """Find a character file by partial name match."""
-    pattern = str(Path(characters_dir) / "*.json")
-    files = glob.glob(pattern)
-    # Exclude combined files
-    files = [f for f in files if 'all_characters' not in f and 'campaign_' not in f]
+def find_character(name_query: str, campaigns_dir: str = "campaigns") -> str | None:
+    """Find a character file by partial name match across all campaigns."""
+    # Search all campaign subdirectories
+    pattern = str(Path(campaigns_dir) / "**" / "*.json")
+    files = glob.glob(pattern, recursive=True)
+    # Exclude combined campaign files
+    files = [f for f in files if 'campaign_' not in Path(f).name]
 
     matches = [f for f in files if name_query.lower() in f.lower()]
 
@@ -512,11 +513,11 @@ def show_summary(data: dict):
     print(f"{name}: Level {sheet.total_level} {race} {classes} | HP {sheet.current_hp}/{sheet.max_hp} | AC {sheet.ac}")
 
 
-def list_characters(characters_dir: str = "characters"):
-    """List all available characters."""
-    pattern = str(Path(characters_dir) / "*.json")
-    files = glob.glob(pattern)
-    files = [f for f in files if 'all_characters' not in f and 'campaign_' not in f]
+def list_characters(campaigns_dir: str = "campaigns"):
+    """List all available characters across all campaigns."""
+    pattern = str(Path(campaigns_dir) / "**" / "*.json")
+    files = glob.glob(pattern, recursive=True)
+    files = [f for f in files if 'campaign_' not in Path(f).name]
 
     print("Available characters:\n")
     for f in sorted(files):
@@ -538,12 +539,12 @@ COMMANDS = {
 def main():
     # Parse --dir option
     args = sys.argv[1:]
-    characters_dir = "characters"
+    campaigns_dir = "campaigns"
 
     if '--dir' in args:
         idx = args.index('--dir')
         if idx + 1 < len(args):
-            characters_dir = args[idx + 1]
+            campaigns_dir = args[idx + 1]
             args = args[:idx] + args[idx + 2:]
         else:
             args = args[:idx]
@@ -560,12 +561,12 @@ def main():
         print("  summary   - One-line summary")
         print("  list      - List all available characters")
         print()
-        list_characters(characters_dir)
+        list_characters(campaigns_dir)
         return
 
     # Check if first arg is a command
     if args[0] == 'list':
-        list_characters(characters_dir)
+        list_characters(campaigns_dir)
         return
 
     if args[0] in COMMANDS:
@@ -578,7 +579,7 @@ def main():
         command = 'sheet'
         name_query = " ".join(args)
 
-    filepath = find_character(name_query, characters_dir)
+    filepath = find_character(name_query, campaigns_dir)
 
     if filepath:
         with open(filepath) as f:
