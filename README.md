@@ -34,11 +34,14 @@ Download character data from D&D Beyond campaigns.
 # List your campaigns
 python3 scripts/character_scraper.py campaigns
 
-# Download all characters from a campaign
-python3 scripts/character_scraper.py campaign <campaign_id> [output_dir]
+# Download all characters from all campaigns (organized by campaign)
+python3 scripts/character_scraper.py
+
+# Download characters from a specific campaign
+python3 scripts/character_scraper.py campaign <campaign_id> [campaign_name]
 
 # Examples
-python3 scripts/character_scraper.py campaign 3471829 campaigns/my-campaign/characters
+python3 scripts/character_scraper.py campaign 3471829 my-campaign
 ```
 
 ### Character Sheet Reader
@@ -49,20 +52,20 @@ Query character data without loading full JSON files.
 python3 scripts/character_sheet.py [--dir DIR] <command> <character_name>
 ```
 
-| Command | Description |
-|---------|-------------|
-| `sheet` | Full character sheet with all stats |
-| `overview` | Brief stats overview (HP, AC, abilities) |
-| `spells` | List all spells by level |
-| `features` | Class/race features and feats |
-| `inventory` | Equipment and currency |
-| `summary` | One-line summary |
-| `list` | List all available characters |
+| Command     | Description                              |
+| ----------- | ---------------------------------------- |
+| `sheet`     | Full character sheet with all stats      |
+| `overview`  | Brief stats overview (HP, AC, abilities) |
+| `spells`    | List all spells by level                 |
+| `features`  | Class/race features and feats            |
+| `inventory` | Equipment and currency                   |
+| `summary`   | One-line summary                         |
+| `list`      | List all available characters            |
 
 ```bash
 # Examples
 python3 scripts/character_sheet.py overview Trigger
-python3 scripts/character_sheet.py --dir campaigns/bkb-primary/characters spells Eldrin
+python3 scripts/character_sheet.py --dir campaigns/bkb-primary spells Eldrin
 python3 scripts/character_sheet.py list
 ```
 
@@ -73,14 +76,12 @@ scry-bot/
 ├── scripts/
 │   ├── character_scraper.py    # D&D Beyond API scraper
 │   └── character_sheet.py      # Character data query tool
-├── characters/                  # Default character storage
-├── campaigns/
+├── campaigns/                   # Campaigns organized by name
 │   └── <campaign-name>/
-│       ├── characters/          # Campaign character JSON files
-│       └── party-overview.md    # Party summary
-└── .claude/
-    └── commands/
-        └── character.md         # Claude Code skill for queries
+│       ├── *.json               # Individual character files
+│       ├── campaign_*.json      # Combined campaign character data (gitignored)
+│       └── *.md                 # Campaign notes/overviews
+└── 5e-spells/                   # D&D 5e spell reference data
 ```
 
 ## Claude Code Integration

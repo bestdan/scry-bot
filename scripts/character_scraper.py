@@ -72,7 +72,9 @@ class DndBeyondScraper:
                         seen_ids.add(char["id"])
                         characters.append(char)
             except Exception as e:
-                print(f"  Warning: Could not get characters from campaign {campaign['name']}: {e}")
+                print(
+                    f"  Warning: Could not get characters from campaign {campaign['name']}: {e}"
+                )
 
         return characters
 
@@ -96,7 +98,9 @@ class DndBeyondScraper:
 
         data = response.json()
         if not data.get("success"):
-            raise ValueError(f"API error for character {character_id}: {data.get('message')}")
+            raise ValueError(
+                f"API error for character {character_id}: {data.get('message')}"
+            )
 
         char_data = data.get("data", {})
         return self._enrich_stat_names(char_data)
@@ -133,7 +137,7 @@ class DndBeyondScraper:
         characters = []
 
         # Find all character IDs from any /characters/{id} pattern
-        char_ids = list(set(re.findall(r'/characters/(\d+)', html)))
+        char_ids = list(set(re.findall(r"/characters/(\d+)", html)))
 
         for char_id in char_ids:
             # Try to find character info in the HTML
@@ -146,35 +150,40 @@ class DndBeyondScraper:
             if idx > 0:
                 # Get context around the ID (look back further to find the card start)
                 start = max(0, idx - 1000)
-                context = html[start:idx + 500]
+                context = html[start : idx + 500]
 
                 # Look for character name in character-info-primary
                 name_match = re.search(
-                    r'character-info-primary[^>]*>\s*([^<]+?)\s*<', context
+                    r"character-info-primary[^>]*>\s*([^<]+?)\s*<", context
                 )
                 if name_match:
                     name = name_match.group(1).strip()
 
                 # Look for player name
-                player_match = re.search(r'Player:\s*([^<]+)', context)
+                player_match = re.search(r"Player:\s*([^<]+)", context)
                 if player_match:
                     player = player_match.group(1).strip()
 
-            characters.append({
-                "id": int(char_id),
-                "name": name,
-                "player": player,
-                "url": f"{self.base_url}/characters/{char_id}",
-            })
+            characters.append(
+                {
+                    "id": int(char_id),
+                    "name": name,
+                    "player": player,
+                    "url": f"{self.base_url}/characters/{char_id}",
+                }
+            )
 
         return characters
 
     def scrape_campaign_characters(
-        self, campaign_id: int, output_dir: str = "./characters"
+        self, campaign_id: int, campaign_name: str = None, base_dir: str = "./campaigns"
     ) -> None:
         """Scrape all characters from a specific campaign."""
-        output_path = Path(output_dir)
-        output_path.mkdir(exist_ok=True)
+        # Create campaign directory
+        if not campaign_name:
+            campaign_name = f"campaign_{campaign_id}"
+        campaign_dir = Path(base_dir) / campaign_name
+        campaign_dir.mkdir(parents=True, exist_ok=True)
 
         print(f"Fetching characters from campaign {campaign_id}...")
         characters = self.get_campaign_characters(campaign_id)
@@ -206,53 +215,36 @@ class DndBeyondScraper:
                 print(f"  ✗ Error scraping character {char_id}: {e}")
 
         # Save combined file
-        combined_path = output_path / f"campaign_{campaign_id}_characters.json"
+        combined_path = campaign_dir / f"campaign_{campaign_id}_characters.json"
         with open(combined_path, "w", encoding="utf-8") as f:
             json.dump(all_data, f, indent=2, ensure_ascii=False)
         print(f"\n✓ Saved combined data to {combined_path}")
         print(f"\nTotal characters scraped: {len(all_data)}/{len(characters)}")
 
-    def scrape_all_characters(self, output_dir: str = "./characters") -> None:
-        """Scrape all characters and save to JSON files."""
-        output_path = Path(output_dir)
-        output_path.mkdir(exist_ok=True)
+    def scrape_all_campaigns(self, base_dir: str = "./campaigns") -> None:
+        """Scrape all characters from all campaigns, organized by campaign."""
+        base_path = Path(base_dir)
+        base_path.mkdir(exist_ok=True)
 
-        print("Fetching character list...")
-        characters = self.get_character_list()
-        print(f"Found {len(characters)} characters")
+        print("Fetching campaigns...")
+        campaigns = self.get_campaign_list()
+        print(f"Found {len(campaigns)} campaigns\n")
 
-        all_data = []
-
-        for char_info in characters:
-            char_id = char_info["id"]
-            player_name = char_info.get("player", "")
-            print(f"\nScraping character ID {char_id}...")
+        for campaign in campaigns:
+            campaign_id = campaign["id"]
+            campaign_name = campaign["name"].replace("/", "_").replace(" ", "_").lower()
+            print(f"\n{'=' * 60}")
+            print(f"Campaign: {campaign['name']} (ID: {campaign_id})")
+            print(f"{'=' * 60}")
 
             try:
-                char_data = self.get_character_data(char_id)
-                char_name = char_data.get("name", f"Character_{char_id}")
-                if player_name:
-                    char_data["_player"] = player_name
-                all_data.append(char_data)
-
-                # Save individual character file
-                filename = (
-                    f"{char_name.replace(' ', '_').replace('/', '_')}_{char_id}.json"
-                )
-                filepath = output_path / filename
-                with open(filepath, "w", encoding="utf-8") as f:
-                    json.dump(char_data, f, indent=2, ensure_ascii=False)
-                print(f"  ✓ {char_name} saved to {filepath}")
-
+                self.scrape_campaign_characters(campaign_id, campaign_name, base_dir)
             except Exception as e:
-                print(f"  ✗ Error scraping character {char_id}: {e}")
+                print(f"  ✗ Error scraping campaign {campaign['name']}: {e}")
 
-        # Save combined file
-        combined_path = output_path / "all_characters.json"
-        with open(combined_path, "w", encoding="utf-8") as f:
-            json.dump(all_data, f, indent=2, ensure_ascii=False)
-        print(f"\n✓ Saved combined data to {combined_path}")
-        print(f"\nTotal characters scraped: {len(all_data)}/{len(characters)}")
+        print(f"\n{'=' * 60}")
+        print("All campaigns scraped!")
+        print(f"{'=' * 60}")
 
 
 def main():
@@ -295,23 +287,23 @@ def main():
         elif command == "campaign" and len(sys.argv) > 2:
             # Scrape specific campaign
             campaign_id = int(sys.argv[2])
-            output_dir = sys.argv[3] if len(sys.argv) > 3 else "./characters"
-            scraper.scrape_campaign_characters(campaign_id, output_dir)
+            campaign_name = sys.argv[3] if len(sys.argv) > 3 else None
+            scraper.scrape_campaign_characters(campaign_id, campaign_name)
 
         else:
             print("Usage:")
             print(
-                "  python3 dndbeyond_scraper.py              - Scrape all your characters"
+                "  python3 character_scraper.py                    - Scrape all campaigns"
             )
             print(
-                "  python3 dndbeyond_scraper.py campaigns    - List all your campaigns"
+                "  python3 character_scraper.py campaigns          - List all your campaigns"
             )
             print(
-                "  python3 dndbeyond_scraper.py campaign ID  - Scrape all characters in campaign"
+                "  python3 character_scraper.py campaign ID [NAME] - Scrape specific campaign"
             )
     else:
-        # Default: scrape all your characters
-        scraper.scrape_all_characters()
+        # Default: scrape all campaigns
+        scraper.scrape_all_campaigns()
 
 
 if __name__ == "__main__":
